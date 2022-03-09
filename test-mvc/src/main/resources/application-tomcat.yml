@@ -1,0 +1,10 @@
+#server:
+#  tomcat:
+#    uri-encoding: utf-8
+#    max-connections: 10000
+#    accept-count: 2000
+#    max-http-header-size: 1048576
+#    max-http-post-size: 2097152
+#    max-threads: 50
+#    min-spare-threads: 10
+#  connection-timeout: 12000

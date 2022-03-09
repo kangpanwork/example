@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: test-sentinel
+  profiles:
+    active: sentinel
+server:
+  port: 9004

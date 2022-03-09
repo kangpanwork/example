@@ -1,0 +1,25 @@
+jetcache:
+  areaInCacheName: false
+  statIntervalMinutes: 15
+  local:
+    default:
+      type: caffeine
+      keyConvertor: fastjson
+  remote:
+    default:
+      type: redis.lettuce
+      valueEncoder: java
+      valueDecoder: java
+      keyConvertor: fastjson
+      uri:
+        - redis://aiVK8ffFCV71L14h@10.101.40.74:7000
+        - redis://aiVK8ffFCV71L14h@10.101.40.74:7001
+        - redis://aiVK8ffFCV71L14h@10.101.40.74:7002
+        - redis://aiVK8ffFCV71L14h@10.101.40.75:7000
+        - redis://aiVK8ffFCV71L14h@10.101.40.75:7001
+        - redis://aiVK8ffFCV71L14h@10.101.40.75:7002
+spring:
+  application:
+    name: jetcache-test
+server:
+  port: 9001

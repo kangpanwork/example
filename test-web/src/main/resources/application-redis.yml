@@ -1,0 +1,12 @@
+spring:
+  redis:
+    cluster:
+      nodes: 10.101.72.43:7000,10.101.72.43:7001,10.101.72.43:7002,10.101.72.43:7003,10.101.72.43:7004,10.101.72.43:7005
+      max-redirects: 6 # 如果某个 key 不在命令发起的主机上,则会重定向, 这个取节点数量即可
+    timeout: 10000
+    jedis:
+      pool:
+        max-active: 8 # 池中最大连接数 高版本：maxTotal，低版本：maxActive
+        max-idle: 8
+        min-idle: 1
+        max-wait: 60000 #当连接池资源耗尽时，调用者最大阻塞的时间，超时将异常。单位，毫秒数;默认为-1.表示永不超时。高版本：maxWaitMillis，低版本：maxWait

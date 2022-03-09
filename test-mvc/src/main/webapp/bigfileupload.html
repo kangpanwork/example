@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>大文件分片上传</title>
+</head>
+<body>
+
+<input type="file" name="file" id="bigfile"/>
+<button id="start">开始上传</button>
+<div id="msg">
+    <label for="">文件名称:</label><span key="fileName"></span><br>
+    <label for="">文件大小:</label><span key="fileSize"></span><br>
+    <label for="">相对路径:</label><span key="relativePath"></span><br><br>
+
+    <label for="">分片数量:</label><span key="shardCount"></span><br>
+    <label for="">每片大小:</label><span key="shardSize"></span><br><br>
+
+    <label for="">当前进度:</label><span key="process"></span><br>
+    <label for="">当前分片:</label><span key="shard"></span><br>
+    <label for="">当前上传大小:</label><span key="loaded"></span><br>
+</div>
+<script src="jquery-1.8.3.min.js"></script>
+<script>
+    $(function () {
+        var fileMeta = 'http://172.24.11.21:8080/sftp/fileMetaData';
+        var uploadLocal = 'http://172.24.11.21:8080/sftp/uploadLocal';
+        var validateFile = 'http://172.24.11.21:8080/sftp/validateFile';
+        var shardSize = 1024 * 1024 * 2;
+
+        $('#msg>span[key=shardSize]').text(shardSize);
+
+        // 文件修改事件绑定
+        $('#bigfile').bind('change',changeFile);
+        // 上传事件绑定
+        $('#start').bind('click',shardUpload);
+
+        var uploadMonitor = {
+            shard:0,
+            shardCount:0,
+            onload:function (event) {
+                // console.log('上传完成分片['+uploadMonitor.shard+'],总分片数['+uploadMonitor.shardCount+']，上传大小为['+event.loaded+']');
+                $('#msg>span[key=shard]').text(uploadMonitor.shard);
+                $('#msg>span[key=loaded]').text(event.loaded);
+                $('#msg>span[key=process]').text(((uploadMonitor.shard / uploadMonitor.shardCount).toFixed(2) * 100)+ " %");
+            },
+            onabort:function (event) {
+
+            },
+            onprogress:function (event) {
+
+            }
+        }
+
+        function shardUpload() {
+            var files =  $('#bigfile')[0].files;
+            var singleFile  = files[0];
+            var shardCount =Math.ceil(singleFile.size/shardSize);
+
+            for(var i=0;i<shardCount;i++){
+                var start = i * shardSize;
+                var end = Math.min(singleFile.size,start + shardSize);//在file.size和start+shardSize中取最小值，避免切片越界
+                var file = singleFile.slice(start,end);
+                var formData = new FormData();
+                formData.append("file",file);
+                formData.append('relativePath',uploadMonitor.relativePath);
+
+                $.ajax({
+                    async:false,
+                    url: uploadLocal,
+                    cache: false,
+                    type: "POST",
+                    data: formData,
+                    dateType: 'json',
+                    processData: false,
+                    contentType: false,
+                    xhr: function () {
+                        var myXhr = $.ajaxSettings.xhr();
+                        uploadMonitor.shardCount = shardCount;
+                        uploadMonitor.shard = i;
+
+                        myXhr.onload = uploadMonitor.onload
+                        return myXhr;
+                    },
+                });
+            }
+        }
+
+        function changeFile() {
+            var files =  $('#bigfile')[0].files;
+            var singleFile  = files[0];
+
+            var originFileName = singleFile.name;
+            var fileSize = singleFile.size;
+
+            $.ajax({
+                url:fileMeta,
+                type:'get',
+                contentType:'application/json',
+                dataType:'json',
+                data:{fileName:originFileName,fileSize:fileSize},
+                success:function (fileMeta) {
+                    var shardCount =Math.ceil(fileSize/shardSize);
+
+                    $('#msg>span[key=fileName]').text(originFileName);
+                    $('#msg>span[key=fileSize]').text(fileSize);
+                    $('#msg>span[key=relativePath]').text(fileMeta.relativePath);
+                    $('#msg>span[key=shardCount]').text(shardCount);
+
+                    uploadMonitor.relativePath = fileMeta.relativePath
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

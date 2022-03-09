@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: test-mvc
+  http:
+    multipart:
+      location: d:/test
+      max-file-size: 100Mb
+      max-request-size: 500Mb
+  profiles:
+    active: tomcat
+server:
+  port: 9002
+
+sftp:
+  username: 9420

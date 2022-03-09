@@ -1,0 +1,10 @@
+server:
+  port: 9005
+spring:
+  application:
+    name: spring-boot-elasticsearch
+  data:
+    elasticsearch:
+      cluster-name: newcluster-sit-hdb
+      cluster-nodes: 10.101.40.138:9300
+      properties: {}

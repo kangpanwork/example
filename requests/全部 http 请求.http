@@ -1,0 +1,139 @@
+### 权限控制测试
+GET {{baseUrl}}/r/r1
+
+### testelasticsearch - 创建索引
+GET {{baseUrl}}/createIndex
+
+### testelasticsearch - 测试添加商品
+GET {{baseUrl}}/save
+
+### testelasticsearch - 测试修改商品标题
+GET {{baseUrl}}/update?id=1&title=苹果手机8PLUS
+
+### testelasticsearch - 批量保存
+GET {{baseUrl}}/saveAll
+
+### testelasticsearch - 查询全部
+GET {{baseUrl}}/findAll
+
+### testelasticsearch - 匹配查询
+GET {{baseUrl}}/matchQuery
+
+### testelasticsearch - 分页查询
+GET {{baseUrl}}/pageQuery
+
+### testelasticsearch - 分组统计
+GET {{baseUrl}}/aggBucketSearch
+
+### testelasticsearch - 嵌套聚合 ,分组统计并求平均值
+GET {{baseUrl}}/aggSubSearch
+
+### es 写入数据
+GET {{baseUrl}}/savssss
+
+### 登录/登录并解析参数
+POST {{baseUrl}}/user/login
+Content-Type: application/x-www-form-urlencoded
+
+username=zs&password=abc
+
+### 解析出用户实体/ 登录并解析参数
+GET {{baseUrl}}/test/argParser
+Authorization: eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJ1c2VybmFtZSI6InpzIiwidXNlcklkIjoiMTQiLCJleHAiOjE1OTI4MDM2MzEsIm5iZiI6MTU5MjYzMDgzMX0.RyDGFXql-6Q4P6wilbKP0EoGr89zj5v8iHmDqktm1H0
+
+### 测试 sse 发送数据
+GET {{baseUrl}}/sse/send?id=clientId&content=我艹这个推送可以
+
+### 测试sse 完成 功能
+GET {{baseUrl}}/sse/complete?id=clientId
+
+### 测试长轮询数据变更监听请求
+GET {{baseUrl}}/async/listener
+
+### 测试长轮询发布数据变更
+GET {{baseUrl}}/publish/dataChangeEvent?groupId=mm&dataId=sanri
+
+### 测试策略对象
+GET {{baseUrl}}/stragegy/method?company=gsc
+
+### 测试策略选择2
+GET {{baseUrl}}/stragegy/invokeParamMethod?company=gsc
+
+### 测试多部分的请求
+POST {{baseUrl}}/test/multipartParam
+Content-Type: multipart/form-data;boundary=multipartParam
+
+--multipartParam
+Content-Disposition: form-data; name="file"; filename="zhongwenbuxin.avi"
+Content-Type: application/octet-stream
+
+< d:/test/test.txt
+
+--multipartParam
+Content-Disposition: form-data; name="username"
+Content-Type: application/x-www-form-urlencoded
+
+sanri
+
+--multipartParam
+Content-Disposition: form-data; name="password"
+Content-Type: application/x-www-form-urlencoded
+
+h123
+
+### sharding-jdbc
+GET {{baseUrl}}/sharding/insert
+
+### jetcache 测试
+GET {{baseUrl}}/tags?page=1&pageSize=10
+
+### tag/condition jetcache condition
+GET {{baseUrl}}/tag/condition?page=2&pageSize=10
+
+### 访问 sentinel
+GET {{baseUrl}}/sample
+
+### shiro - 登录
+POST {{baseUrl}}/v1/login
+Content-Type: application/x-www-form-urlencoded
+
+account=admin&password=admin
+
+### shiro - 当前登录用户
+GET {{baseUrl}}/v1/current
+Cookie: JSESSIONID=F13AFB219DE2CB3618487AA88E913119
+
+### shiro - 访问 admin 权限路径
+GET {{baseUrl}}/v1/admin/users
+Cookie: JSESSIONID=6D50A2FD45362C625DC6952D5708EF0A
+
+
+### http://120.25.107.156:8082/jarvis/evcs/v1/080122912/
+POST http://120.25.107.156:8082/jarvis/evcs/v1/080122912/
+
+### webflux
+GET http://localhost:8080/hello
+
+### webflux Post city
+POST http://localhost:8080/city
+Content-Type: application/json
+
+{
+  "id": 2,
+  "provinceId": 3,
+  "cityName": "深圳",
+  "description": "经济特区"
+}
+
+### webflux get city
+GET http://localhost:8080/city
+
+### https://easy.lagou.com/talent/search/list.json
+POST https://easy.lagou.com/talent/search/list.json
+Content-Type: application/x-www-form-urlencoded
+
+city=%E6%B7%B1%E5%9C%B3&keyword=java&pageNo=1&showId=7c3fe09df31642319b46809c69a08225&searchVersion=1
+###
+POST {{baseUrl}}/a/b
+
+###

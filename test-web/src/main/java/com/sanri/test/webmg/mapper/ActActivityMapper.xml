@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sanri.test.webmg.mapper.ActActivityMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sanri.test.webmg.mapper.entity.ActActivity">
+        <id column="id" property="id" />
+        <result column="code" property="code" />
+        <result column="type" property="type" />
+        <result column="name" property="name" />
+        <result column="title" property="title" />
+        <result column="cycle" property="cycle" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+        <result column="doc" property="doc" />
+        <result column="reward_mode" property="rewardMode" />
+        <result column="reward_send_type" property="rewardSendType" />
+        <result column="reward_time_start" property="rewardTimeStart" />
+        <result column="rules_limit" property="rulesLimit" />
+        <result column="target" property="target" />
+        <result column="ext_data" property="extData" />
+        <result column="status" property="status" />
+        <result column="is_deleted" property="isDeleted" />
+        <result column="create_by" property="createBy" />
+        <result column="create_date" property="createDate" />
+        <result column="last_updated_by" property="lastUpdatedBy" />
+        <result column="last_update_date" property="lastUpdateDate" />
+        <result column="remark" property="remark" />
+        <result column="reward_time_end" property="rewardTimeEnd" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, code, type, name, title, cycle, start_time, end_time, doc, reward_mode, reward_send_type, reward_time_start, rules_limit, target, ext_data, status, is_deleted, create_by, create_date, last_updated_by, last_update_date, remark, reward_time_end
+    </sql>
+
+</mapper>

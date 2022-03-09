@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>长轮询测试</title>
+</head>
+<body>
+    <div>
+        <span id="token"></span>
+        <button id="getToken">获取 token</button>
+    </div>
+    <div id="data">
+
+    </div>
+    <div>
+        <button id="listener">监听</button>
+        <button id="publish">推送数据</button>
+    </div>
+
+    <script src="jquery-1.8.3.min.js"></script>
+<script>
+    $(function () {
+        let token = '';
+        $('#getToken').bind('click',function () {
+            $.getJSON('http://10.101.72.42:8081/sanritools/company/token?env=dev',function (result) {
+                $('#token').text(result.token);
+                token = result.token;
+                // $.ajaxSetup({
+                //     headers:{Authorization:result.token}
+                // });
+            })
+        })
+
+        $('#listener').bind('click',function () {
+            $('#data').empty();
+
+            $.ajax({
+                url:'https://hhd-dev-scp.evergrande.cn/scp-st-messagecenter-component/messageCenter/message/listener?intervalSec=90',
+                type: "GET",
+                dateType: 'json',
+                headers:{Authorization:token},
+                success:function (res) {
+                    $('#data').text(JSON.stringify(res))
+                }
+            })
+
+        });
+        
+        $('#publish').bind('click',function () {
+            $.ajax({
+                url:'https://hhd-dev-scp.evergrande.cn/scp-st-messagecenter-component/event/publish',
+                type:'get',
+                dataType:'json',
+                headers:{Authorization:token},
+                success:function () {
+                    console.log('消息推送成功')
+                }
+            })
+        })
+    });
+
+</script>
+</body>
+</html>

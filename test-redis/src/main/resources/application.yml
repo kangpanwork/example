@@ -1,0 +1,11 @@
+spring:
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 5000
+    database: 0
+    pool:
+      max-active: 8
+      max-wait: -1  # 不限制阻塞等待时间
+      max-idle: 8   # 连接池空闲 8 个
+      min-idle: 2   # 最小空闲 2 个

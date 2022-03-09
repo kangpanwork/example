@@ -1,0 +1,19 @@
+spring:
+  kafka:
+    properties:
+      sasl:
+        mechanism: PLAIN
+    bootstrap-servers: 192.168.2.134:9092
+    listener:
+      concurrency: 5
+      ack-mode: manual_immediate
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: test-consumer-group
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+

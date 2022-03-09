@@ -1,0 +1,9 @@
+2019-11-28 17:59:59 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "FILE_INFO" not found; SQL statement:
+select * from file_info [42102-197]
+2019-11-28 18:01:12 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "FILE_INFO" not found; SQL statement:
+select * from file_info [42102-197]
+2019-11-28 18:04:30 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "FILE_INFO" not found; SQL statement:
+select * from file_info [42102-197]

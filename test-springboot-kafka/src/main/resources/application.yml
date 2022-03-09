@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: test-springboot-kafka
+  profiles:
+    active: cprd
+
+

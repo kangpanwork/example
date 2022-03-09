@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: redis-lua
+  redis:
+    database: 0
+    host: 192.168.108.128
+    port: 6379
+    timeout: 2000
+    jedis:
+      pool:
+        max-active: 8
+        max-wait: -1ms
+        max-idle: 8
+        min-idle: 0

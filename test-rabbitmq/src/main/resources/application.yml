@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: springboot-rabbitmq
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: sanri
+    password: h123
+    virtual-host: /test
+    publisher-confirms: true
+    listener:
+      simple:
+        concurrency: 10
+        max-concurrency: 20
+        prefetch: 5

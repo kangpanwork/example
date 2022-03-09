@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sanri.test.sharding.mapper.OrderMapper">
+
+    <insert id="insert" parameterType="java.util.List">
+        insert into table_data (id,table_id,table_model_id,table_name,vehicle_id,
+        vehicle_start_date,vehicle_brand,vehicle_no,vehicle_type,table_date,user_id,
+        user_name,check_item_id,check_item_important,check_item_name,item_id,
+        item_check_content,item_check_name,item_declared,item_ok,item_ok_url,
+        item_problem_description,item_problem_url) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.id,jdbcType=BIGINT},
+            #{item.tableId,jdbcType=BIGINT},
+            #{item.tableModelId,jdbcType=BIGINT},
+            #{item.tableName,jdbcType=VARCHAR},
+            #{item.vehicleId,jdbcType=INTEGER},
+            #{item.vehicleStartDate,jdbcType=TIMESTAMP},
+            #{item.vehicleBrand,jdbcType=VARCHAR},
+            #{item.vehicleNo,jdbcType=VARCHAR},
+            #{item.vehicleType,jdbcType=VARCHAR},
+            #{item.tableDate,jdbcType=TIMESTAMP},
+            #{item.userId,jdbcType=BIGINT},
+            #{item.userName,jdbcType=VARCHAR},
+            #{item.checkItemId,jdbcType=INTEGER},
+            #{item.checkItemImportant,jdbcType=INTEGER},
+            #{item.checkItemName,jdbcType=VARCHAR},
+            #{item.itemId,jdbcType=INTEGER},
+            #{item.itemCheckContent,jdbcType=VARCHAR},
+            #{item.itemCheckName,jdbcType=VARCHAR},
+            #{item.itemDeclared,jdbcType=INTEGER},
+            #{item.itemOk,jdbcType=INTEGER},
+            #{item.itemOkUrl,jdbcType=VARCHAR},
+            #{item.itemProblemDescription,jdbcType=VARCHAR},
+            #{item.itemProblemUrl,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+</mapper>

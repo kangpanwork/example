@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/test
+    username: root
+    password: h123
+    driver-class-name: com.mysql.jdbc.Driver
+  redis:
+    host: localhost
+    timeout: 1000
+  profiles:
+    active: dev
+  application:
+    name: test-distributed-id
+mybatis:
+  mapper-locations: mybatis/mapper/*.xml

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>完整的一个大文件上传</title>
+    <style>
+        .upload-item{
+            padding: 15px 10px;
+            list-style-type: none;
+
+            display: flex;
+            flex-direction: row;
+            margin-bottom: 10px;
+            border: 1px dotted lightgray;
+            width: 1000px;
+
+            position: relative;
+        }
+        .upload-item:before{
+            content: ' ';
+            background-color: lightblue;
+            width: 0px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: -1;
+        }
+        .upload-item span{
+            display: block;
+            margin-left: 20px;
+        }
+        .upload-item>.file-name{
+            width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .upload-item>.upload-process{
+            width: 50px;
+            text-align: left;
+        }
+        .upload-item>.upload-status{
+            width: 100px;
+            text-align: center;
+        }
+
+        table{
+            width: 100%;
+            border-collapse: collapse;
+            position: fixed;
+            bottom: 200px;
+
+        }
+        td{
+            border: 1px solid whitesmoke;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="file-uploads">
+        <input type="file" multiple id="file" />
+        <button id="startUpload">开始上传</button>
+        <ul id="uploadfiles">
+        </ul>
+
+        <table class="" style="" id="table"  >
+            <thead>
+                <tr>
+                    <td>文件名</td>
+                    <td>文件大小</td>
+                    <td>已上传大小</td>
+                    <td>相对路径</td>
+                    <td>md5</td>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+<!--    <script src="jquery-1.8.3.min.js"></script>-->
+    <script src="jquery1.11.1.min.js"></script>
+    <script src="spark-md5.min.js"></script>
+
+    <script>
+        const root = '';
+        
+        const breakPointFiles = root + '/breakPointFiles';      // 获取断点文件列表
+        const fileMetaData = root + '/fileMetaData';            // 新上传文件元数据，secUpload 属性用于判断是否可以秒传
+        const uploadPart = root +'/uploadPart';                 // 分片上传，每片的上传接口
+        const checkIntegrity = root + '/checkIntegrity';        // 检查文件完整性
+        const fileInfoPos = root + '/fileInfoPos';              // 获取系统中所有已经上传的文件(调试)
+        
+        const shardSize = 1024 * 1024 * 2;                      // 分片上传，每片大小 2M 
+        const chunkSize = 1024 * 1024 * 4;                      // md5 计算每段大小 4M
+        const statusInfoMap = {'0':'待上传','1':'正在计算','2':'正在上传','3':'上传成功','4':'上传失败','5':'暂停上传','6':'文件检查'};
+
+        let uploadFiles = {};       //用于存储当前需要上传的文件列表 fileName=>fileInfo
+
+        $(function () {
+            // 用于调试 begin 加载系统中已经上传过的文件列表
+            $.ajax({
+                type:'get',
+                url:fileInfoPos,
+                dataType:'json',
+                success:function (res) {
+                    let htmlCodes = [];
+
+                    for(let i=0;i<res.length;i++){
+                        htmlCodes.push('<tr>');
+                        htmlCodes.push('<td>'+res[i].name+'</td>');
+                        htmlCodes.push('<td>'+res[i].size+'</td>');
+                        htmlCodes.push('<td>'+res[i].uploaded+'</td>');
+                        htmlCodes.push('<td>'+res[i].relativePath+'</td>');
+                        htmlCodes.push('<td>'+res[i].md5+'</td>');
+                        htmlCodes.push('</tr>')
+                    }
+                   $('table').append(htmlCodes.join(''))
+                }
+            })
+            // 用于调试 end
+
+            // 事件绑定
+            $('#file').change(changeFiles);                                             // 选择文件列表事件
+            $('#startUpload').click(beginUpload);                                       // 开始上传
+            $('#uploadfiles').on('change','input[type=file]',breakPointFileChange);     // 断点文件选择事件
+
+            // 初始化时加载断点文件 
+            (function () {
+                $.ajax({
+                    type:'get',
+                    url:breakPointFiles,
+                    dataType:'json',
+                    success:function (files) {
+                        if(files && files.length > 0){
+                            for (let i=0;i<files.length;i++){
+                                let fileId = id();
+                                let process = parseFloat((files[i].uploaded / files[i].size ) * 100).toFixed(2);
+                                $('#uploadfiles').append(templateUploadItem(fileId,files[i],process,5,'断点续传',i+1));
+                                uploadFiles[fileId] = {fileInfo:files[i],status:5};
+                            }
+                        }
+                    }
+                })
+            })(window);
+
+            /**
+             * 文件重新选择事件
+             * @param e
+             */
+            function changeFiles(e) {
+                // 检测文件列表是否符合要求，默认都符合
+                if(this.files.length == 0){return ;}
+
+                // 先把文件信息追加上去，不做检查也不上传
+                for (let i = 0; i < this.files.length; i++) {
+                    let file = this.files[i];
+                    let fileId = id();
+                    $('#uploadfiles').append(templateUploadItem(fileId,file,0,0,''));
+                    uploadFiles[fileId] = {file:file,status:0};
+                }
+
+            }
+
+
+            /**
+             * 断点文件选择文件事件
+            */
+            function breakPointFileChange(e) {
+                let fileId = $(e.target).closest('li').attr('fileId');
+                if(this.files.length > 0){
+                    uploadFiles[fileId].file = this.files[0];
+                }
+            }
+
+            /**
+             * 开始上传
+             */
+            function beginUpload() {
+                // 先对每一个文件进行检查，除断点文件不需要检查外
+                // console.log(uploadFiles);
+                for(let fileId in uploadFiles){
+                    // 如果断点文件没有 file 信息，直接失败
+                    if(uploadFiles[fileId].status == 5 && !uploadFiles[fileId].file){
+                        //断点文件一定有 fileInfo
+                        let fileInfo = uploadFiles[fileId].fileInfo;
+                        let $li = $('#uploadfiles').find('li[fileId='+fileId+']');
+                        $li.children('.upload-status').text('上传失败');fileInfo.status = 4;
+                        $li.children('.tips').text('无文件信息');
+                        continue;
+                    }
+                    if(uploadFiles[fileId].status == 5){
+                        //如果断点文件有 file 信息，则可以直接断点续传了
+                        let $li = $('#uploadfiles').find('li[fileId='+fileId+']');
+                        $li.children('.upload-status').text('正在上传');uploadFiles[fileId].status = 2;
+                        startUpload(uploadFiles[fileId],$li);
+                        continue;
+                    }
+                    //其它待上传的文件，先后台检查文件信息，再上传
+                    if(uploadFiles[fileId].status  == 0){
+                        let $li = $('#uploadfiles').find('li[fileId='+fileId+']');
+                        uploadFiles[fileId].status = 1; $li.children('.upload-status').text('正在计算')     //正在计算
+                        checkFileItem(uploadFiles[fileId].file,function (res) {
+                            if(res.message && res.message == 'fail'){
+                                $li.children('.upload-status').text(res.returnCode ||  '上传出错');uploadFiles[fileId].status = 4;
+                            }else{
+                                uploadFiles[fileId].fileInfo = res;
+                                if(res.secUpload){
+                                    $li.children('.upload-status').text('文件秒传');uploadFiles[fileId].status = 3;
+                                    $li.children('.upload-process').text('100 %');
+                                }else{
+                                    $li.children('.upload-status').text('正在上传');uploadFiles[fileId].status = 2;
+                                    startUpload(uploadFiles[fileId],$li);
+                                }
+                            }
+                        });
+                    }
+                }
+
+                /**
+                 * 计算 md5 值，请求后台查看是否可秒传
+                 */
+                function checkFileItem(file,callback) {
+                    md5Hex(file,function (md5) {
+                        $.ajax({
+                            type:'get',
+                            async:false,
+                            url:fileMetaData,
+                            data:{originFileName:file.name,fileSize:file.size,md5:md5},
+                            dataType:'json',
+                            success:callback
+                        });
+                    });
+
+                }
+
+                /**
+                 * 开始正式上传单个文件
+                 * */
+                function startUpload(uploadFile,$li) {
+                    let file = uploadFile.file;
+                    let offset = uploadFile.fileInfo.uploaded || 0;
+                    let shardCount =Math.ceil((file.size - offset )/shardSize);
+                    for(var i=0;i<shardCount;i++){
+                        var start = i * shardSize + offset;
+                        var end = Math.min(file.size,start + shardSize );//在file.size和start+shardSize中取最小值，避免切片越界
+                        var filePart = file.slice(start,end);
+                        var formData = new FormData();
+                        formData.append("file",filePart,uploadFile.fileInfo.name || uploadFile.fileInfo.originFileName);
+                        formData.append('relativePath',uploadFile.fileInfo.relativePath);
+
+                        $.ajax({
+                            async:false,
+                            url: uploadPart,
+                            cache: false,
+                            type: "POST",
+                            data: formData,
+                            dateType: 'json',
+                            processData: false,
+                            contentType: false,
+                            success:function (uploaded) {
+                                //进度计算
+                                let process = parseFloat((uploaded / file.size) * 100).toFixed(2);
+                                console.log(file.name+'|'+process);
+                                $li.find('.upload-process').html(process + '%');
+
+                                // 视觉进度
+                                // $('.upload-item').append("<style>.upload-item::before{ width:"+(process * 1000)+ "% }</style>");
+
+                                if(uploaded == file.size || i === shardCount - 1){
+                                    // 上传完成后，检查文件完整性
+                                    $li.children('.upload-status').text('文件检查');
+                                    $.ajax({
+                                        type:'get',
+                                        async:false,
+                                        url:checkIntegrity,
+                                        data:{fileName:uploadFile.fileInfo.name || uploadFile.fileInfo.originFileName,fileSize:uploaded,relativePath:uploadFile.fileInfo.relativePath},
+                                        success:function (res) {
+                                            if(res.message != 'fail'){
+                                                $li.children('.upload-status').text('上传成功');
+                                            }else{
+                                                $li.children('.upload-status').text('上传失败');
+                                                $li.children('.tips').text(res.returnCode);
+                                            }
+                                        }
+                                    })
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            /**
+             * 创建模板 html 上传文件项
+             * @param fileName
+             * @param process
+             * @param status
+             * @param tips
+             * @returns {string}
+             */
+            function templateUploadItem(fileId,fileInfo,process,status,tips,breakPoint) {
+                let htmlCodes = [];
+                htmlCodes.push('<li class="upload-item" fileId="'+fileId+'">');
+                htmlCodes.push('<span class="file-name">'+(fileInfo.name || fileInfo.originFileName)+'</span>');
+                htmlCodes.push('<span class="file-size">'+(fileInfo.size)+'</span>');
+                htmlCodes.push('<span class="upload-process">'+process+' %</span>');
+                htmlCodes.push('<span class="upload-status" >'+statusInfoMap[status+'']+'</span>');
+                htmlCodes.push('<span class="tips">'+tips+'</span>');
+                if(breakPoint){
+                    htmlCodes.push('<input type="file" name="file"  style="margin-left: 10px;"/>');
+                }
+                htmlCodes.push('</li>');
+                return htmlCodes.join('');
+            }
+
+            /**
+             * 计算 md5 值(同步计算)
+             * @param file
+             */
+            function md5Hex(file,callback) {
+                let blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice,
+                    chunks = Math.ceil(file.size / chunkSize),
+                    currentChunk = 0,
+
+                    spark = new SparkMD5.ArrayBuffer(),
+                    fileReader = new FileReader();
+
+                fileReader.onload = function (e) {
+                    spark.append(e.target.result);                   // Append array buffer
+                    currentChunk++;
+                    if (currentChunk < chunks) {
+                        loadNext();
+                    } else {
+                        let hash = spark.end();
+                        callback(hash);
+                    }
+                }
+
+                fileReader.onerror = function () {
+                    console.warn('md5 计算时出错');
+                };
+
+                function loadNext(){
+                    var start = currentChunk * chunkSize,
+                        end = ((start + chunkSize) >= file.size) ? file.size : start + chunkSize;
+
+                    fileReader.readAsArrayBuffer(blobSlice.call(file, start, end));
+                }
+
+                loadNext();
+            }
+
+            function id() {
+                return Math.floor(Math.random() * 1000);
+            }
+        });
+        
+    </script>
+</body>
+</html>

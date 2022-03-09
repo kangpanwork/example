@@ -1,0 +1,7 @@
+server:
+  port: 9010
+spring:
+  profiles:
+    active: db,redis
+  application:
+    name: test-webmg

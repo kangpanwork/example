@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>websocket 示例| 这个是示例是指向 sanri-tools 的 websocket 真实示例</title>
+</head>
+<body>
+    <div>
+        <button id="connect">连接服务器</button>
+    </div>
+    <div>
+        <textarea name="" id="message" cols="30" rows="10"></textarea>
+        <div>
+            <input type="text" id="input" />
+            <button type="button" id="send">发送</button>
+            <input type="file" name="files" multiple id="uploadFile" />
+        </div>
+    </div>
+<script src="jquery1.11.1.min.js"></script>
+
+<script>
+    let socket = null;
+    let socketURL = 'ws://localhost:8084/listen/';
+    let fileNames = [];
+
+    function openWebsocket() {
+        if (typeof (WebSocket) == "undefined") {
+            console.log("您的浏览器不支持WebSocket");
+            return ;
+        }
+        // 获取当前 sessionId
+        $.getJSON('http://localhost:8084/chat/sessionId',res => {
+            let sessionId = res.data;
+            if (socket !== null){socket.close();socket = null;}
+
+            socket = new WebSocket(socketURL+sessionId);
+            socket.onopen = function () {
+                console.log("websocket已打开");
+            };
+            socket.onmessage = function (msg) {
+                console.log(msg.data);
+            };
+            socket.onclose = function () {
+                console.log("websocket已关闭");
+            };
+            socket.onerror = function () {
+                console.log("websocket发生了错误");
+            }
+        })
+    }
+
+    function sendMessage(){
+        let input = $('#input').val().trim();
+        if (!input){
+            console.log(input)
+            return ;
+        }
+        let msg = {
+            routingKey: 'chat',
+            command: 'SEND_MESSAGE',
+            traceId: 'abcde',
+            timestamp: new Date().getTime(),
+            payload: {
+                message: input,
+                messageType: 1
+            }
+        };
+
+        if (fileNames && fileNames.length > 0){
+            msg.payload.files = fileNames;
+        }
+
+        socket.send(JSON.stringify(msg))
+
+        // 发送完清空图片
+        fileNames = [];
+    }
+
+    function uploadFile(){
+        let files = this.files;
+        let formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files',files[i],files[i].name);
+        }
+        $.ajax({
+            url:'http://localhost:8084/chat/storage/uploadFile',
+            type:'post',
+            data: formData,
+            processData : false, // 使数据不做处理
+            contentType : false, // 不要设置Content-Type请求头
+            success: function (data) {
+                fileNames = data.data;
+            }
+        })
+    }
+
+    $('#connect').click(openWebsocket);
+    $('#send').click(sendMessage);
+    $('#uploadFile').change(uploadFile);
+</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+mvn install:install-file -DgroupId=com.baidu.fsg -DartifactId=uid-generator -Dversion=1.0.0-SNAPSHOT -Dpackaging=jar -Dfile=uid-generator-1.0.0-SNAPSHOT.jar

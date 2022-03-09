@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>测试 sse 功能 </title>
+    <style>
+        .data-show{
+            width: 400px;
+            height: 500px;
+            word-break: break-all;
+            white-space: nowrap;
+            line-height: 1.5;
+
+            margin-top: 100px;
+            margin-left: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="data-show" id="data"></div>
+
+    <script>
+        let eventSource = new EventSource("http://localhost:8080/sse/listener?id=clientId");
+        eventSource.onmessage = function (event) {
+            data.innerText += event.data;
+
+            console.log(event.lastEventId)
+            console.log(event);
+        }
+
+        eventSource.onopen = function (e) {
+            console.log(e)
+        }
+    </script>
+</body>
+</html>

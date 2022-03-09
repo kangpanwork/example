@@ -1,0 +1,7 @@
+# 配置文件加密
+jasypt:
+  encryptor:
+    password: JKSDjsdfJL3N42HDLSKJNKjdfnd7232JLS
+
+test:
+  mm: ENC(0pnIsNHSKFDA/1aHfGIoHg==)
